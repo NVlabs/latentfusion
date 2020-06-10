@@ -1,0 +1,19 @@
+type = "cross_entropy"
+
+[loss_weights]
+depth = 0.0
+ov_depth = 0.0
+iou = 0.0
+mask = 0.0
+latent = 1.0
+
+[args]
+num_samples = 96
+num_iters = 30
+ranking_size = 16
+num_elites = 48
+num_gmm_components = 6
+learning_rate = 0.3
+sample_flipped = true
+init_hemisphere = false
+init_upright = false
