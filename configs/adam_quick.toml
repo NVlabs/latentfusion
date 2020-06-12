@@ -3,8 +3,8 @@ type = "gradient"
 [args]
   optimizer = "adam"
   num_iters = 100
-  num_samples = 32
-  ranking_size = 32
+  num_samples = 8
+  ranking_size = 8
   learning_rate = 0.01
   lr_reduce_patience = 10
   lr_reduce_threshold = 1e-4
@@ -17,3 +17,4 @@ type = "gradient"
   ov_depth = 0.3
   iou = 0.0
   mask = 0.0
+  latent = 0.0

@@ -39,6 +39,21 @@ For training, we make use of Automatic Mixed Precision. Until PyTorch 1.6 is rel
 We've exluded PyTorch from the `environment.yml` file for this reason.
 
 
+## Trained Model
+
+We provide a trained model. You can download the weights from [here](https://drive.google.com/file/d/18NIGeCO4U5fgTpqH3bBTXfk1Ib1f0Seh/view). The weights are licensed under a Creative Commons license. Please see the [weights license](WEIGHTS_LICENSE) for details.
+
+You can use the model like this:
+```python
+import torch
+from latentfusion.recon.inference import LatentFusionModel
+checkpoint = torch.load('path-to-checkpoint')
+model = LatentFusionModel.from_checkpoint(checkpoint)
+```
+
+Please see the [example notebook](examples/pose_estimation.ipynb) for details.
+
+
 ## Dataset Download
 
 ### BOP/LINEMOD
@@ -52,7 +67,7 @@ You can download the MOPED dataset at the [project page](https://keunhong.com/pu
 
 ## Pose Estimation
 
-We provide an example script for pose estimation in the `examples` directory in the form of a Jupyter notebook. Download the weights from [here]() 
+We provide an example script for pose estimation in the `examples` directory in the form of a Jupyter notebook. Download the weights from [here](https://drive.google.com/file/d/18NIGeCO4U5fgTpqH3bBTXfk1Ib1f0Seh/view)
 and open the notebook with Jupyter.
 
 
