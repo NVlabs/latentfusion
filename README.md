@@ -36,7 +36,7 @@ For training, we make use of Automatic Mixed Precision. Until PyTorch 1.6 is rel
 
     conda install pytorch torchvision cudatoolkit=10.2 -c pytorch-nightly
 
-We've exluded PyTorch from the `environment.yml` file for this reason.
+We've excluded PyTorch from the `environment.yml` file for this reason.
 
 
 ## Trained Model
