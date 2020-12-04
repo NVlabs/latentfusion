@@ -1,6 +1,6 @@
 # LatentFusion
 
- * [[project page](https://keunhong.com/publications/latentfusion/)]
+ * [[project page](https://latentfusion.github.io/)]
  * [[paper](https://arxiv.org/abs/1912.00416)]
 
 ## Citing LatentFusion
