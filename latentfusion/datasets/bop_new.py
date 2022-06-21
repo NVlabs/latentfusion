@@ -11,10 +11,6 @@ from torch.utils.data import Dataset
 from torch.nn import functional as F
 
 from latentfusion import three, meshutils
-##########################################
-# MY ADDITIONS #
-import os
-##########################################
 
 logger = structlog.get_logger(__name__)
 
@@ -71,7 +67,7 @@ class BOPDataset(Dataset):
             self.models_path = self.dataset_path / 'models_reconst'
         elif dataset_path.name == 'lm_format':
             base_obj_scale = 1.0
-            self.models_path = self.dataset_path / 'models'            
+            self.models_path = self.dataset_path / 'models'
         else:
             raise ValueError(f'Unknown dataset type {dataset_path.name}')
 
@@ -79,23 +75,22 @@ class BOPDataset(Dataset):
         self.pointcloud_path = self.dataset_path / 'models_eval' / f'obj_{self.object_id:06d}.ply'
 
         models_info_path = self.dataset_path / 'models_eval' / 'models_info.json'
-        # with open(models_info_path, 'r') as f:
-        #     self.model_info = json.load(f)[str(object_id)]
+        with open(models_info_path, 'r') as f:
+            self.model_info = json.load(f)[str(object_id)]
 
         self.center_object = center_object
-        self.object_scale = 1/175
-        # if object_scale is None:
-        #     self.object_scale = base_obj_scale / self.model_info['diameter']
-        # else:
-        #     self.object_scale = object_scale
+        if object_scale is None:
+            self.object_scale = base_obj_scale / self.model_info['diameter']
+        else:
+            self.object_scale = object_scale
 
         self.image_scale = 1.0
-        # self.bounds = torch.tensor([
-        #     (self.model_info['min_x'], self.model_info['min_x'] + self.model_info['size_x']),
-        #     (self.model_info['min_y'], self.model_info['min_y'] + self.model_info['size_y']),
-        #     (self.model_info['min_z'], self.model_info['min_z'] + self.model_info['size_z']),
-        # ])
-        # self.centroid = self.bounds.mean(dim=1)
+        self.bounds = torch.tensor([
+            (self.model_info['min_x'], self.model_info['min_x'] + self.model_info['size_x']),
+            (self.model_info['min_y'], self.model_info['min_y'] + self.model_info['size_y']),
+            (self.model_info['min_z'], self.model_info['min_z'] + self.model_info['size_z']),
+        ])
+        self.centroid = self.bounds.mean(dim=1)
 
         self.depth_dir = self.scene_path / 'depth'
         self.mask_dir = self.scene_path / 'mask_visib'
@@ -111,20 +106,15 @@ class BOPDataset(Dataset):
         rotation, translation = three.decompose(self.extrinsics)
         self.quaternions = three.quaternion.mat_to_quat(rotation[:, :3, :3])
 
-        # self.depth_paths = sorted([self.depth_dir / f'{frame_ind:06d}.png'
-        #                            for frame_ind in self.scene_object_inds.keys()])
-        # self.mask_paths = [
-        #     self.mask_dir / f'{frame_ind:06d}_{obj_ind:06d}.jpg'
-        #     for frame_ind, obj_ind in self.scene_object_inds.items()
-        # ]
-        # self.color_paths = sorted([self.color_dir / f'{frame_ind:06d}.jpg'
-        #                            for frame_ind in self.scene_object_inds.keys()])
-        self.depth_paths = sorted(os.listdir(self.depth_dir))
-        self.depth_paths = [os.path.join(self.depth_dir, name) for name in self.depth_paths]        
-        self.mask_paths = sorted(os.listdir(self.mask_dir))
-        self.mask_paths = [os.path.join(self.mask_dir, name) for name in self.mask_paths]        
-        self.color_paths = sorted(os.listdir(self.color_dir))
-        self.color_paths = [os.path.join(self.color_dir, name) for name in self.color_paths]        
+        self.depth_paths = sorted([self.depth_dir / f'{frame_ind:06d}.png'
+                                   for frame_ind in self.scene_object_inds.keys()])
+        self.mask_paths = [
+            self.mask_dir / f'{frame_ind:06d}_{obj_ind:06d}.png'
+            for frame_ind, obj_ind in self.scene_object_inds.items()
+        ]
+        self.color_paths = sorted([self.color_dir / f'{frame_ind:06d}.png'
+                                   for frame_ind in self.scene_object_inds.keys()])
+
         assert len(self.depth_paths) == len(self.mask_paths)
         assert len(self.depth_paths) == len(self.color_paths)
 
@@ -158,21 +148,13 @@ class BOPDataset(Dataset):
             frame_inds = sorted([int(k) for k in extrinsics_json.keys()])
             for frame_ind in frame_inds:
                 for obj_ind, cam_d in enumerate(extrinsics_json[str(frame_ind)]):
-
-                    # if cam_d['obj_id'] == self.object_id:
-                    #     rotation = torch.tensor(
-                    #         cam_d['cam_R_m2c'], dtype=torch.float32).reshape(3, 3)
-                    #     translation = torch.tensor(cam_d['cam_t_m2c'], dtype=torch.float32)
-                    #     quaternion = three.quaternion.mat_to_quat(rotation)
-                    #     extrinsics.append(three.to_extrinsic_matrix(translation, quaternion))
-                    #     scene_object_inds[frame_ind] = obj_ind
-
-                    rotation = torch.tensor(
-                        cam_d['cam_R_m2c'], dtype=torch.float32).reshape(3, 3)
-                    translation = torch.tensor(cam_d['cam_t_m2c'], dtype=torch.float32)
-                    quaternion = three.quaternion.mat_to_quat(rotation)
-                    extrinsics.append(three.to_extrinsic_matrix(translation, quaternion))
-                    scene_object_inds[frame_ind] = obj_ind
+                    if cam_d['obj_id'] == self.object_id:
+                        rotation = torch.tensor(
+                            cam_d['cam_R_m2c'], dtype=torch.float32).reshape(3, 3)
+                        translation = torch.tensor(cam_d['cam_t_m2c'], dtype=torch.float32)
+                        quaternion = three.quaternion.mat_to_quat(rotation)
+                        extrinsics.append(three.to_extrinsic_matrix(translation, quaternion))
+                        scene_object_inds[frame_ind] = obj_ind
 
         return extrinsics, scene_object_inds
 
@@ -238,8 +220,6 @@ class BOPDataset(Dataset):
         return inds
 
     def __getitem__(self, idx):
-        # print("idx", idx)
-        # print(len(self.color_paths))
         color = self._load_color(self.color_paths[idx])
         color = (torch.tensor(color).float() / 255.0).permute(2, 0, 1)
         mask = self._load_mask(self.mask_paths[idx])
@@ -247,15 +227,13 @@ class BOPDataset(Dataset):
         depth = self._load_depth(self.depth_paths[idx])
         depth = torch.tensor(depth) * self.object_scale * self.depth_scales[idx]
 
-        # print("Intrinsic before normalization", intrinsic)
-        # intrinsic = self.normalize_intrinsic(self.intrinsics[idx])
-        # print("Intrinsic before normalization", intrinsic)
-        # extrinsic = self.normalize_extrinsic(self.extrinsics[idx])
+        intrinsic = self.normalize_intrinsic(self.intrinsics[idx])
+        extrinsic = self.normalize_extrinsic(self.extrinsics[idx])
 
         return {
             'color': color,
             'mask': mask,
             'depth': depth,
-            'extrinsic': self.extrinsics[idx],
-            'intrinsic': self.intrinsics[idx],
+            'extrinsic': extrinsic,
+            'intrinsic': intrinsic,
         }
