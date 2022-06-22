@@ -168,6 +168,7 @@ class BOPDataset(Dataset):
         image = Image.open(path)
         new_shape = (int(image.width * self.image_scale), int(image.height * self.image_scale))
         image = image.resize(new_shape)
+        image = image.resize((480, 640))
         image = np.array(image)
         return image
 
@@ -175,6 +176,7 @@ class BOPDataset(Dataset):
         image = Image.open(path)
         new_shape = (int(image.width * self.image_scale), int(image.height * self.image_scale))
         image = image.resize(new_shape)
+        image = image.resize((480, 640))
         image = np.array(image, dtype=np.bool)
         if len(image.shape) > 2:
             image = image[:, :, 0]
@@ -184,6 +186,7 @@ class BOPDataset(Dataset):
         image = Image.open(path)
         new_shape = (int(image.width * self.image_scale), int(image.height * self.image_scale))
         image = image.resize(new_shape)
+        image = image.resize((480, 640))
         image = np.array(image, dtype=np.float32)
         return image
 
